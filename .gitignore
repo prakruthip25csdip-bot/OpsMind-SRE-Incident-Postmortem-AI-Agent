@@ -52,3 +52,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+
+# Node & Build artifacts (ai-agent branch)
+node_modules/
+dist/
+dist-ssr/
+.vite/

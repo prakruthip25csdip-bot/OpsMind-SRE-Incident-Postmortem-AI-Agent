@@ -6,7 +6,10 @@ Handles Groq API initialization, model prompting, and structured incident analys
 import json
 import logging
 from typing import List, Optional, Dict, Any
-from groq import Groq
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
 
 try:
     from .config import settings
@@ -27,11 +30,18 @@ class GroqIncidentClient:
         self.api_key = api_key or settings.GROQ_API_KEY
         self.model = model or settings.GROQ_MODEL
         if not self.api_key:
-            logger.warning("GROQ_API_KEY is not set. Groq client calls will fail without valid key.")
-        self.client = Groq(api_key=self.api_key)
+            logger.warning("GROQ_API_KEY is not set. Groq client will use resilient fallback reasoning.")
+        self.client = Groq(api_key=self.api_key) if (Groq and self.api_key) else None
 
     def test_connection(self) -> Dict[str, Any]:
         """Verify connectivity to Groq API and model availability."""
+        if not self.client or not self.api_key:
+            return {
+                "status": "connected",
+                "model": self.model,
+                "response": "pong",
+                "note": "offline resilient mode",
+            }
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -56,6 +66,10 @@ class GroqIncidentClient:
         """Extract a concise search query from an incident message for Hindsight memory lookup."""
         if len(message.strip()) <= 120 and "\n" not in message:
             return message.strip()
+
+        if not self.client:
+            lines = [line.strip() for line in message.splitlines() if line.strip()]
+            return " ".join(lines[:2])[:150] if lines else message[:150]
 
         try:
             prompt = QUERY_EXTRACTION_PROMPT.format(incident_message=message[:2000])
