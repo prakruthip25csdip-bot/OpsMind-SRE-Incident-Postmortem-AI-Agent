@@ -1,0 +1,10 @@
+{
+  "name": "memora-desk-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix memora-desk/frontend run dev",
+    "build": "npm --prefix memora-desk/frontend run build",
+    "preview": "npm --prefix memora-desk/frontend run preview"
+  }
+}
