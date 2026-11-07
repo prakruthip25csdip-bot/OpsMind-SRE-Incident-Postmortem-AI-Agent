@@ -14,6 +14,22 @@ __pycache__/
 venv/
 
 # Testing
+# Environment variables & secrets (CRITICAL: Never commit to GitHub)
+.env
+.env.local
+*.env
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 .pytest_cache/
 .coverage
 htmlcov/
@@ -24,3 +40,15 @@ htmlcov/
 
 # Logs
 *.log
+# Local databases & logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
