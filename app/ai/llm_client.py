@@ -3,7 +3,10 @@
 import asyncio
 import json
 from typing import Any, Dict, List, Optional
-from groq import AsyncGroq
+try:
+    from groq import AsyncGroq
+except ImportError:
+    AsyncGroq = None
 
 from app.core.config import settings
 from app.core.exceptions import LLMServiceError

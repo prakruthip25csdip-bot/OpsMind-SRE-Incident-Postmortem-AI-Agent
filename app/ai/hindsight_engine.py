@@ -5,10 +5,16 @@ from datetime import datetime, timezone
 import json
 from typing import Any, Dict, List, Optional
 import httpx
-from hindsight_client import Hindsight
-from hindsight_client_api.models.recall_response import RecallResponse
-from hindsight_client_api.models.reflect_response import ReflectResponse
-from hindsight_client_api.models.retain_response import RetainResponse
+try:
+    from hindsight_client import Hindsight
+    from hindsight_client_api.models.recall_response import RecallResponse
+    from hindsight_client_api.models.reflect_response import ReflectResponse
+    from hindsight_client_api.models.retain_response import RetainResponse
+except ImportError:
+    Hindsight = None
+    RecallResponse = None
+    ReflectResponse = None
+    RetainResponse = None
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -31,6 +37,8 @@ class HindsightEngine:
     @property
     def client(self) -> Hindsight:
         """Lazy initialization of the Hindsight SDK client."""
+        if Hindsight is None:
+            raise RuntimeError("hindsight_client SDK package not installed; using local memory fallback")
         if self._client is None:
             self._client = Hindsight(
                 base_url=self.base_url,
