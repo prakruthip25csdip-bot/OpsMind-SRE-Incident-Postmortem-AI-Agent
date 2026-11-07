@@ -1,3 +1,19 @@
+# Environment variables
+.env
+.env.*
+
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Testing
 # Environment variables & secrets (CRITICAL: Never commit to GitHub)
 .env
 .env.local
@@ -18,6 +34,12 @@ __pycache__/
 .coverage
 htmlcov/
 
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
 # Local databases & logs
 *.db
 *.sqlite
