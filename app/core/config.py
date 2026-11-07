@@ -16,6 +16,15 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug_flag(cls, v: Union[str, bool, int, None]) -> bool:
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.strip().lower() in ("true", "1", "yes", "on", "debug", "dev", "development")
+        return bool(v) if v is not None else True
+
     # Security & JWT
     SECRET_KEY: str = "hackwithhyderabad-opsmind-super-secure-secret-key-3.0"
     ALGORITHM: str = "HS256"

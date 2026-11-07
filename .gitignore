@@ -30,3 +30,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+
+# Node / Frontend artifacts (backend branch)
+node_modules/
+dist/
+dist-ssr/
+.vite/
