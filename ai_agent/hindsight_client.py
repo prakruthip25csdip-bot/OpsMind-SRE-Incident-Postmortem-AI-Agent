@@ -6,17 +6,26 @@ incident retention, multi-strategy recall, and reflection operations.
 
 import logging
 from typing import List, Optional, Dict, Any, Union
-from hindsight_client import (
-    Hindsight,
-    RetainResponse,
-    RecallResponse,
-    ReflectResponse,
-)
-from hindsight_client_api.exceptions import (
-    ApiException,
-    UnauthorizedException,
-    NotFoundException,
-)
+try:
+    from hindsight_client import (
+        Hindsight,
+        RetainResponse,
+        RecallResponse,
+        ReflectResponse,
+    )
+    from hindsight_client_api.exceptions import (
+        ApiException,
+        UnauthorizedException,
+        NotFoundException,
+    )
+except ImportError:
+    Hindsight = None
+    RetainResponse = None
+    RecallResponse = None
+    ReflectResponse = None
+    ApiException = Exception
+    UnauthorizedException = Exception
+    NotFoundException = Exception
 
 try:
     from .config import settings
@@ -46,22 +55,29 @@ class HindsightMemoryClient:
         self.timeout = timeout or settings.HINDSIGHT_TIMEOUT
 
         # Instantiate official Hindsight SDK client
-        self.client = Hindsight(
-            base_url=self.base_url,
-            api_key=self.api_key if self.api_key else None,
-            timeout=self.timeout,
-            user_agent="IncidentIQ-Agent/1.0",
-        )
-        logger.info(
-            f"Initialized Hindsight client with base_url={self.base_url}, bank_id={self.bank_id}, "
-            f"api_key={'configured' if self.api_key else 'none'}"
-        )
+        if Hindsight:
+            self.client = Hindsight(
+                base_url=self.base_url,
+                api_key=self.api_key if self.api_key else None,
+                timeout=self.timeout,
+                user_agent="IncidentIQ-Agent/1.0",
+            )
+        else:
+            self.client = None
+            logger.info("Hindsight SDK client not installed; running in local resilient mode.")
 
     def check_connection(self) -> Dict[str, Any]:
         """
         Verify connection to Hindsight instance by querying version and capabilities.
         Uses the official get_version() SDK method.
         """
+        if not self.client:
+            return {
+                "status": "fallback_local",
+                "base_url": self.base_url,
+                "bank_id": self.bank_id,
+                "note": "Using resilient memory fallback",
+            }
         try:
             version_response = self.client.get_version()
             return {
@@ -107,6 +123,10 @@ class HindsightMemoryClient:
         target_bank = bank_id or self.bank_id
         tags = tags or ["incident"]
 
+        if not self.client:
+            logger.info("Hindsight client offline; skipping remote retain.")
+            return None
+
         logger.info(f"Retaining incident in bank '{target_bank}' with tags={tags}")
         try:
             response = self.client.retain(
@@ -144,6 +164,9 @@ class HindsightMemoryClient:
         - budget: Computational budget ('low', 'mid', 'high')
         """
         target_bank = bank_id or self.bank_id
+        if not self.client:
+            logger.info("Hindsight client offline; returning empty recall response.")
+            return None
         logger.info(f"Recalling memories from bank '{target_bank}' for query: '{query[:80]}...'")
 
         try:
@@ -178,6 +201,9 @@ class HindsightMemoryClient:
         Uses the official client.reflect() method.
         """
         target_bank = bank_id or self.bank_id
+        if not self.client:
+            logger.info("Hindsight client offline; skipping reflect.")
+            return None
         logger.info(f"Reflecting on bank '{target_bank}' with prompt: '{query[:80]}...'")
 
         try:
@@ -211,6 +237,10 @@ class HindsightMemoryClient:
         """
         target_bank = bank_id or self.bank_id
         tags = tags or ["incident", "outcome"]
+
+        if not self.client:
+            logger.info("Hindsight client offline; skipping retain_outcome.")
+            return None
 
         logger.info(f"Retaining outcome in bank '{target_bank}' with tags={tags}")
         try:
